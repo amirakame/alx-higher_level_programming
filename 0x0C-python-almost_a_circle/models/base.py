@@ -1,158 +1,132 @@
 #!/usr/bin/python3
-"""Defines a rectangle class."""
-from models.base import Base
+"""
+define class named base
+"""
+import json
+import csv
+import turtle
 
 
-class Rectangle(Base):
-    """Represent a rectangle."""
+class Base:
+    """
+    Base class
+    """
+    __nb_objects = 0
 
-    def __init__(self, width, height, x=0, y=0, id=None):
-        """Initialize a new Rectangle.
+    def __init__(self, id=None):
+        if id is not None:
+            self.id = id
+        else:
+            Base.__nb_objects += 1
+            self.id = Base.__nb_objects
 
-        Args:
-            width (int): The width of the new Rectangle.
-            height (int): The height of the new Rectangle.
-            x (int): The x coordinate of the new Rectangle.
-            y (int): The y coordinate of the new Rectangle.
-            id (int): The identity of the new Rectangle.
-        Raises:
-            TypeError: If either of width or height is not an int.
-            ValueError: If either of width or height <= 0.
-            TypeError: If either of x or y is not an int.
-            ValueError: If either of x or y < 0.
-        """
-        self.width = width
-        self.height = height
-        self.x = x
-        self.y = y
-        super().__init__(id)
+    @staticmethod
+    def to_json_string(list_dictionaries):
+        if list_dictionaries is None or list_dictionaries == []:
+            return "[]"
+        return json.dumps(list_dictionaries)
 
-    @property
-    def width(self):
-        """Set/get the width of the Rectangle."""
-        return self.__width
+    @classmethod
+    def save_to_file(cls, list_objs):
+        nameoffile = cls.__name__ + ".json"
+        with open(nameoffile, "w") as f:
+            if list_objs is None:
+                f.write("[]")
+            else:
+                x = []
+                for i in list_objs:
+                    x.append(i.to_dictionary())
+                f.write(Base.to_json_string(x))
 
-    @width.setter
-    def width(self, value):
-        if type(value) != int:
-            raise TypeError("width must be an integer")
-        if value <= 0:
-            raise ValueError("width must be > 0")
-        self.__width = value
+    @staticmethod
+    def from_json_string(json_string):
+        if json_string is None or json_string == "[]":
+            return []
+        return json.loads(json_string)
 
-    @property
-    def height(self):
-        """Set/get the height of the Rectangle."""
-        return self.__height
+    @classmethod
+    def create(cls, **dictionary):
+        if dictionary and dictionary != {}:
+            if cls.__name__ == "Rectangle":
+                s = cls(1, 1)
+            else:
+                s = cls(1)
+            s.update(**dictionary)
+            return s
 
-    @height.setter
-    def height(self, value):
-        if type(value) != int:
-            raise TypeError("height must be an integer")
-        if value <= 0:
-            raise ValueError("height must be > 0")
-        self.__height = value
+    @classmethod
+    def load_from_file(cls):
+        nameoffile = str(cls.__name__) + ".json"
+        try:
+            with open(nameoffile, "r") as f:
+                z = Base.from_json_string(f.read())
+                return [cls.create(**d) for d in z]
+        except IOError:
+            return []
 
-    @property
-    def x(self):
-        """Set/get the x coordinate of the Rectangle."""
-        return self.__x
+    @classmethod
+    def save_to_file_csv(cls, list_objs):
+        nameoffile = cls.__name__ + ".csv"
+        with open(nameoffile, "w", newline="") as f:
+            if list_objs is None or list_objs == []:
+                f.write("[]")
+            else:
+                if cls.__name__ == "Rectangle":
+                    ele = ["id", "width", "height", "x", "y"]
+                else:
+                    ele = ["id", "size", "x", "y"]
+                s = csv.DictWriter(f, fieldnames=ele)
+                for i in list_objs:
+                    s.writerow(i.to_dictionary())
 
-    @x.setter
-    def x(self, value):
-        if type(value) != int:
-            raise TypeError("x must be an integer")
-        if value < 0:
-            raise ValueError("x must be >= 0")
-        self.__x = value
+    @classmethod
+    def load_from_file_csv(cls):
+        nameoffile = cls.__name__ + ".csv"
+        try:
+            with open(nameoffile, "r", newline="") as f:
+                if cls.__name__ == "Rectangle":
+                    ele = ["id", "width", "height", "x", "y"]
+                else:
+                    ele = ["id", "size", "x", "y"]
+                d = csv.DictReader(f, fieldnames=ele)
+                q = []
+                for i in d:
+                    for key, value in i.items():
+                        i[key] = int(value)
+                    q.append(cls.create(**i))
+                return q
+        except IOError:
+            return []
 
-    @property
-    def y(self):
-        """Set/get the y coordinate of the Rectangle."""
-        return self.__y
-
-    @y.setter
-    def y(self, value):
-        if type(value) != int:
-            raise TypeError("y must be an integer")
-        if value < 0:
-            raise ValueError("y must be >= 0")
-        self.__y = value
-
-    def area(self):
-        """Return the area of the Rectangle."""
-        return self.width * self.height
-
-    def display(self):
-        """Print the Rectangle using the `#` character."""
-        if self.width == 0 or self.height == 0:
-            print("")
-            return
-
-        [print("") for y in range(self.y)]
-        for h in range(self.height):
-            [print(" ", end="") for x in range(self.x)]
-            [print("#", end="") for w in range(self.width)]
-            print("")
-
-    def update(self, *args, **kwargs):
-        """Update the Rectangle.
-
-        Args:
-            *args (ints): New attribute values.
-                - 1st argument represents id attribute
-                - 2nd argument represents width attribute
-                - 3rd argument represent height attribute
-                - 4th argument represents x attribute
-                - 5th argument represents y attribute
-            **kwargs (dict): New key/value pairs of attributes.
-        """
-        if args and len(args) != 0:
-            a = 0
-            for arg in args:
-                if a == 0:
-                    if arg is None:
-                        self.__init__(self.width, self.height, self.x, self.y)
-                    else:
-                        self.id = arg
-                elif a == 1:
-                    self.width = arg
-                elif a == 2:
-                    self.height = arg
-                elif a == 3:
-                    self.x = arg
-                elif a == 4:
-                    self.y = arg
-                a += 1
-
-        elif kwargs and len(kwargs) != 0:
-            for k, v in kwargs.items():
-                if k == "id":
-                    if v is None:
-                        self.__init__(self.width, self.height, self.x, self.y)
-                    else:
-                        self.id = v
-                elif k == "width":
-                    self.width = v
-                elif k == "height":
-                    self.height = v
-                elif k == "x":
-                    self.x = v
-                elif k == "y":
-                    self.y = v
-
-    def to_dictionary(self):
-        """Return the dictionary representation of a Rectangle."""
-        return {
-            "id": self.id,
-            "width": self.width,
-            "height": self.height,
-            "x": self.x,
-            "y": self.y
-        }
-
-    def __str__(self):
-        """Return the print() and str() representation of the Rectangle."""
-        return "[Rectangle] ({}) {}/{} - {}/{}".format(self.id,
-                                                       self.x, self.y,
-                                                       self.width, self.height)
+    @staticmethod
+    def draw(list_rectangles, list_squares):
+        s = turtle.Turtle()
+        s.hideturtle()
+        s.screen.bgcolor("red")
+        for i in list_rectangles:
+            s.color("white")
+            s.up()
+            s.goto(i.x, i.y)
+            s.down()
+            s.forward(i.width)
+            s.left(90)
+            s.forward(i.height)
+            s.left(90)
+            s.forward(i.width)
+            s.left(90)
+            s.forward(i.height)
+            s.left(90)
+        for j in list_squares:
+            s.color("black")
+            s.up()
+            s.goto(j.x, j.y)
+            s.down()
+            s.forward(j.width)
+            s.left(90)
+            s.forward(j.height)
+            s.left(90)
+            s.forward(j.width)
+            s.left(90)
+            s.forward(j.height)
+            s.left(90)
+        turtle.exitonclick()
