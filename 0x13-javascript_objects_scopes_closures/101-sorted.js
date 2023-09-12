@@ -9,6 +9,7 @@ for (const j in valsUniq) {
   const list = [];
   for (const k in totalist) {
     if (totalist[k][1] === valsUniq[j]) {
+
 list.unshift(totalist[k][0]);
     }
   }
