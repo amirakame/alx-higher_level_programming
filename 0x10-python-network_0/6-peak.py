@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#/usr/bin/python3
 """Module that finds a peak in a list of integers"""
 
 
@@ -28,7 +28,7 @@ def find_peak(list_of_integers):
 	Returns:
 	    int: peak(s)
 	"""
-	list_ = list_of_integers
+        list_ = list_of_integers
 	# if there is no list of integers return None
 	if list_ == []:
 	    return None
